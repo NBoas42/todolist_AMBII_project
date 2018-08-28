@@ -1,6 +1,3 @@
-
-
-
 //Init main server modules
 const app = require('express')();
 const http = require('http').Server(app);
@@ -8,11 +5,12 @@ const io = require('socket.io')(http);
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 
-//init body parser
-app.use(bodyParser.json);
+// init body parser
+app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({
-    extended:true
+extended:true
 }));
+
 
 //init mongoose todoItems DB
 const todoItem = require('./todoItem.model.js');
@@ -24,8 +22,6 @@ mongoose.connect(db);
 http.listen(3000,  () => {
     console.log('listening on localhost:3000');
 });
-
-
 
 //default directory router
 app.get('/', (req, res) =>{
@@ -44,7 +40,6 @@ app.get('/getList',(req,res)=>
         }
         else
         {
-            console.log(todoItems);
             res.json(todoItems);
         }
     });
@@ -54,32 +49,42 @@ app.get('/getList',(req,res)=>
 //get single list item router
 app.get('/getListItem/:id',(req,res)=>
 {
-    console.log("getting list item");
 
     todoItem.findOne({_id:req.params.id}).exec((err,todoItem) =>
     {
-        if(err) {
-            res.send('error has occured');
+        if(err)
+        {
+            res.send('Could not find item');
         }
         else
         {
-            console.log(todoItem);
             res.json(todoItem);
         }
     });
 
 });
 
-//remove todoItem
+//delete todoItem
+app.delete("/deleteItem", (req,res) =>
+{
+    todoItem.deleteOne({ title: req.body.title, description: req.body.description}, (err,deletedItem) =>
+    {
+        if(err)
+        {
+            res.send('Could not delete item');
+        }
+        else
+        {
+            res.json(deletedItem);
+        }
 
+    });
+});
 
 //post todoItem
 app.post('/addItem', (req,res)=>{
 
-    console.log("working");
-
     let newToDoItem = new todoItem();
-
     newToDoItem.title = req.body.title;
     newToDoItem.description = req.body.description;
 
@@ -87,27 +92,16 @@ app.post('/addItem', (req,res)=>{
 
         if(err)
         {
-            res.send('error saving todoList Item');
+            res.send('error saving Item');
         }
         else
         {
-            console.log(todoItem);
-            res.send(todoItem);
+            res.json(todoItem);
         }
-
-
     });
 
-
-
 });
 
-
-//Handle socket connection
-io.on('connection',  (socket) => {
-
-
-});
 
 
 
